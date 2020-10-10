@@ -32,8 +32,16 @@ defmodule Katsuragi.Commands.Pixiv.AuthServer do
   end
 
   @doc """
+  Forces a refresh on the tokens.
+  """
+  def refresh do
+    Agent.update(__MODULE__, &Authenticator.refresh!/1)
+  end
+
+  @doc """
   Refreshes and returns the stored tokens.
   """
+  @spec refresh_and_get() :: Tokens.t()
   def refresh_and_get do
     Agent.get_and_update(__MODULE__, fn tokens ->
       tokens =

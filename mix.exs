@@ -13,7 +13,6 @@ defmodule Katsuragi.MixProject do
 
   def application do
     [
-      extra_applications: [:logger],
       mod: {Katsuragi.Application, []}
     ]
   end
@@ -23,7 +22,9 @@ defmodule Katsuragi.MixProject do
       {:percussion, github: "rphln/Percussion"},
       {:nostrum, "~> 0.4"},
       {:mojito, "~> 0.7"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:extwitter, "~> 0.12.0"},
+      {:quantum, "~> 3.0"}
     ]
   end
 end
