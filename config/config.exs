@@ -20,7 +20,7 @@ config :extwitter, :oauth,
 
 config :katsuragi, Katsuragi.Scheduler,
   jobs: [
-    {"20 16 * * *", {Katsuragi.Twitter, :send, []}},
+    {"20 19 * * *", {Katsuragi.Twitter, :send, []}},
     {"*/45 * * * *", {Katsuragi.Commands.Pixiv.AuthServer, :refresh, []}}
   ]
 
