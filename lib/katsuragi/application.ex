@@ -14,7 +14,7 @@ defmodule Katsuragi.Application do
     password = Application.get_env(:katsuragi, :pixiv_password)
 
     children = [
-      {Pixiv.AuthServer, username: username, password: password},
+      # {Pixiv.AuthServer, username: username, password: password},
       Katsuragi.Scheduler
     ]
 

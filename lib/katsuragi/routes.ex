@@ -12,7 +12,7 @@ defmodule Katsuragi.Routes do
             Katsuragi.Commands.Stamp,
             Katsuragi.Commands.Choose,
             Katsuragi.Commands.Random,
-            Katsuragi.Commands.Pixiv,
+            # Katsuragi.Commands.Pixiv,
             Katsuragi.Commands.Sadpanda,
             Katsuragi.Commands.Riot,
             Katsuragi.Commands.Whale
