@@ -3,42 +3,18 @@ defmodule Katsuragi.Commands.Pixiv.Constants do
   Constants used to access the Pixiv API.
   """
 
-  alias Katsuragi.Commands.Pixiv.Tokens
-
   @doc """
   Base URL for the public API.
   """
   @spec base_url() :: String.t()
-  def base_url, do: "https://app-api.pixiv.net/v1"
-
-  @doc """
-  Endpoint for requesting and refreshing authentication tokens.
-  """
-  @spec auth_url() :: String.t()
-  def auth_url, do: "https://oauth.secure.pixiv.net/auth/token"
-
-  @doc """
-  Public identifier used by OAuth2.
-  """
-  @spec client_id() :: String.t()
-  def client_id, do: "MOBrBDS8blbauoSck0ZfDbtuzpyT"
-
-  @doc """
-  Private identifier used by OAuth2.
-  """
-  @spec client_secret() :: String.t()
-  def client_secret, do: "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
-
-  @doc """
-  Salt used to generate the `X-Client-Hash` header.
-  """
-  @spec hash_secret() :: String.t()
-  def hash_secret, do: "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c"
+  def base_url, do: "https://www.pixiv.net/ajax"
 
   @doc """
   Value to be used in the `User-Agent` header.
   """
-  def user_agent, do: "PixivIOSApp/6.4.0"
+  def user_agent,
+    do:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
 
   @doc """
   Value to be used in the `Accept-Language` header. Determines whether tag
@@ -47,23 +23,22 @@ defmodule Katsuragi.Commands.Pixiv.Constants do
   def accept_language, do: "en"
 
   @doc """
+  Authentication token, obtained by manually logging in to Pixiv and getting the `PHPSESSID`
+  cookie value.
+  """
+  def session_token, do: Application.fetch_env!(:katsuragi, :pixiv_session_token)
+
+  @doc """
   Request headers required to access Pixiv.
   """
   @spec headers() :: [{String.t(), String.t()}]
   def headers do
     [
-      {"Referer", auth_url()},
-      {"User-Agent", user_agent()},
-      {"Accept-Language", accept_language()}
+      {"Accept-Language", accept_language()},
+      {"PHPSESSID", session_token()},
+      {"Referer", base_url()},
+      {"User-Agent", user_agent()}
     ]
-  end
-
-  @doc """
-  Request headers required to access Pixiv with authentication.
-  """
-  @spec headers(Tokens.t()) :: [{String.t(), String.t()}]
-  def headers(%Tokens{access_token: access_token}) do
-    [{"Authorization", "Bearer #{access_token}"} | headers()]
   end
 
   @doc """

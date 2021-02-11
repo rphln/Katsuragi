@@ -8,9 +8,11 @@ config :logger,
 config :nostrum,
   token: System.get_env("DISCORD_TOKEN")
 
+config :mojito,
+  timeout: :infinity
+
 config :katsuragi,
-  pixiv_username: System.get_env("PIXIV_USERNAME"),
-  pixiv_password: System.get_env("PIXIV_PASSWORD")
+  pixiv_session_token: System.get_env("PIXIV_SESSION_TOKEN")
 
 config :extwitter, :oauth,
   consumer_key: System.get_env("TWITTER_CONSUMER_KEY"),
@@ -20,8 +22,7 @@ config :extwitter, :oauth,
 
 config :katsuragi, Katsuragi.Scheduler,
   jobs: [
-    {"20 19 * * *", {Katsuragi.Twitter, :send, []}},
-    {"*/45 * * * *", {Katsuragi.Commands.Pixiv.AuthServer, :refresh, []}}
+    {"20 19 * * *", {Katsuragi.Twitter, :send, []}}
   ]
 
 if Mix.env() in [:dev, :test] do

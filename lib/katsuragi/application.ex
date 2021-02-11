@@ -6,15 +6,10 @@ defmodule Katsuragi.Application do
   use Application
 
   alias Katsuragi.Consumer
-  alias Katsuragi.Commands.Pixiv
 
   @spec start(any, any) :: {:error, any} | {:ok, pid}
   def start(_type, _args) do
-    username = Application.get_env(:katsuragi, :pixiv_username)
-    password = Application.get_env(:katsuragi, :pixiv_password)
-
     children = [
-      # {Pixiv.AuthServer, username: username, password: password},
       Katsuragi.Scheduler
     ]
 

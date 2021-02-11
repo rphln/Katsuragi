@@ -12,17 +12,11 @@ defmodule Katsuragi.Commands.Pixiv.Work do
   @doc """
   Fetches metadata for a single gallery.
   """
-  @spec get(Token.t(), integer) :: {:ok, gallery} | {:error, term}
-  def get(tokens, id) do
-    url =
-      "#{Constants.base_url()}/illust/detail"
-      |> URI.parse()
-      |> Map.put(:query, URI.encode_query(%{"illust_id" => id}))
-      |> URI.to_string()
-
-    with {:ok, response} <- download(tokens, url) do
+  @spec get(integer) :: {:ok, gallery} | {:error, term}
+  def get(id) do
+    with {:ok, response} <- download("#{Constants.base_url()}/illust/#{id}") do
       case Jason.decode!(response.body) do
-        %{"illust" => work} ->
+        %{"error" => false, "body" => work} ->
           {:ok, work}
 
         _ ->
@@ -31,11 +25,8 @@ defmodule Katsuragi.Commands.Pixiv.Work do
     end
   end
 
-  @doc """
-  TODO: Write this.
-  """
-  def download(tokens, url) do
-    case Mojito.get(url, Constants.headers(tokens)) do
+  def download(url) do
+    case Mojito.get(url, Constants.headers()) do
       {:ok, %{status_code: 200} = response} ->
         {:ok, response}
 
@@ -52,15 +43,7 @@ defmodule Katsuragi.Commands.Pixiv.Work do
   """
   @spec updated_at!(gallery) :: String.t()
   def updated_at!(gallery) do
-    Map.get(gallery, "reuploaded_time", gallery["created_time"])
-  end
-
-  @doc """
-  Whether the given gallery is animated.
-  """
-  @spec animated?(gallery) :: boolean
-  def animated?(gallery) do
-    gallery["type"] == "ugoira"
+    Map.get(gallery, "uploadDate", gallery["createDate"])
   end
 
   @doc """
@@ -68,7 +51,7 @@ defmodule Katsuragi.Commands.Pixiv.Work do
   """
   @spec multipage?(gallery) :: boolean
   def multipage?(gallery) do
-    gallery["page_count"] > 1
+    gallery["pageCount"] > 1
   end
 
   @doc """
@@ -76,7 +59,7 @@ defmodule Katsuragi.Commands.Pixiv.Work do
   """
   @spec link_for(gallery) :: String.t()
   def link_for(gallery) do
-    Constants.gallery_url(gallery["id"])
+    Constants.gallery_url(gallery["illustId"])
   end
 
   @doc """
@@ -84,6 +67,6 @@ defmodule Katsuragi.Commands.Pixiv.Work do
   """
   @spec author_link_for(gallery) :: String.t()
   def author_link_for(gallery) do
-    Constants.member_url(gallery["user"]["id"])
+    Constants.member_url(gallery["userId"])
   end
 end
