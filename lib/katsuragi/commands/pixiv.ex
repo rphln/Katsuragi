@@ -11,16 +11,19 @@ defmodule Katsuragi.Commands.Pixiv do
   alias Katsuragi.Commands.Pixiv.Work
   alias Katsuragi.Commands.Pixiv.Constants
 
-  @pattern ~r"pixiv\S*?/artworks/(\d+)"i
+  @pattern ~r"pixiv\S*?/artworks/(\d+)(?:\s(\d+))?"i
 
   def aliases do
     ["pixiv"]
   end
 
-  def reply(message, gallery_id) do
+  def reply(message, gallery_id, page) do
     with {:ok, work} <- Work.get(gallery_id),
-         {:ok, file} <- Work.download(work["urls"]["regular"]) do
-      name = Path.basename(work["urls"]["regular"])
+         {:ok, pages} <- Work.pages(gallery_id),
+         url <- Enum.at(pages, page, work),
+         url <- url["urls"]["regular"],
+         {:ok, file} <- Work.download(url) do
+      name = Path.basename(url)
 
       description =
         work["tags"]["tags"]
@@ -49,8 +52,17 @@ defmodule Katsuragi.Commands.Pixiv do
 
   def call(%Request{message: message} = request) do
     matches =
-      for [_match, gallery_id] <- Regex.scan(@pattern, message.content) do
-        task = Task.async(fn -> reply(message, gallery_id) end)
+      for match <- Regex.scan(@pattern, message.content) do
+        {gallery_id, page} =
+          case match do
+            [_match, gallery_id] ->
+              {gallery_id, 0}
+
+            [_match, gallery_id, page] ->
+              {gallery_id, String.to_integer(page) - 1}
+          end
+
+        task = Task.async(fn -> reply(message, gallery_id, page) end)
 
         # Wait for a while to avoid triggering the rate limiter.
         Process.sleep(2000)

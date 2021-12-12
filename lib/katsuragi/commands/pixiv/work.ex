@@ -25,6 +25,22 @@ defmodule Katsuragi.Commands.Pixiv.Work do
     end
   end
 
+  @doc """
+  Fetches pages metadata for a single gallery.
+  """
+  @spec pages(integer) :: {:ok, gallery} | {:error, term}
+  def pages(id) do
+    with {:ok, response} <- download("#{Constants.base_url()}/illust/#{id}/pages") do
+      case Jason.decode!(response.body) do
+        %{"error" => false, "body" => pages} ->
+          {:ok, pages}
+
+        _ ->
+          {:error, "Unexpected response body"}
+      end
+    end
+  end
+
   def download(url) do
     case Mojito.get(url, Constants.headers()) do
       {:ok, %{status_code: 200} = response} ->
