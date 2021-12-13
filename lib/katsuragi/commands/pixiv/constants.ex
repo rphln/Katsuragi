@@ -35,7 +35,7 @@ defmodule Katsuragi.Commands.Pixiv.Constants do
   def headers do
     [
       {"Accept-Language", accept_language()},
-      {"PHPSESSID", session_token()},
+      {"Cookie", "PHPSESSID=#{session_token()}"},
       {"Referer", base_url()},
       {"User-Agent", user_agent()}
     ]
