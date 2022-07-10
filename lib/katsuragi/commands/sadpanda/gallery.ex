@@ -16,6 +16,7 @@ defmodule Katsuragi.Commands.Sadpanda.Gallery do
     :posted,
     :rating,
     :tags,
+    :original_tags,
     :thumbnail,
     :title,
     :torrent_count,

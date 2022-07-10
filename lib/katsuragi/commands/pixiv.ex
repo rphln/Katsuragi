@@ -12,7 +12,7 @@ defmodule Katsuragi.Commands.Pixiv do
   alias Katsuragi.Commands.Pixiv.Constants
 
   @pattern ~r"pixiv\S*?/artworks/(\d+)(?:\s(\d+))?"i
-  @blacklist ~r"blacklist: (.+?)$"im
+  @blacklist ~r"blacklist: pixiv: (.+?)$"im
 
   def aliases do
     ["pixiv"]
@@ -26,7 +26,7 @@ defmodule Katsuragi.Commands.Pixiv do
          {:ok, file} <- Work.download(url) do
       name = Path.basename(url)
 
-      is_blacklisted =
+      is_blacklisted? =
         Enum.any?(
           work["tags"]["tags"],
           &(&1["translation"]["en"] in blacklist or &1["tag"] in blacklist)
@@ -50,7 +50,7 @@ defmodule Katsuragi.Commands.Pixiv do
         |> Embed.put_timestamp(Work.updated_at!(work))
         |> Embed.put_url(Work.link_for(work))
 
-      if is_blacklisted do
+      if is_blacklisted? do
         embed =
           Embed.put_field(
             embed,

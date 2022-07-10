@@ -11,15 +11,27 @@ defmodule Katsuragi.Commands.Sadpanda do
   alias Katsuragi.Commands.Sadpanda
 
   @pattern ~r"(?:exhentai|e-hentai)\S*?/g/(\w+)/(\w+)"i
+  @blacklist ~r"blacklist: e-hentai: (.+?)$"im
 
   def aliases do
     ["sadpanda"]
   end
 
-  def call(%Request{message: message} = request) do
+  def call(%Request{message: message, channel_id: channel_id} = request) do
     matches =
       for [_match, id, token] <- Regex.scan(@pattern, message.content) do
         [id, token]
+      end
+
+    channel = Nostrum.Api.get_channel!(channel_id)
+
+    blacklist =
+      with %{topic: topic} <- channel,
+           [_match, blacklist] <- Regex.run(@blacklist, topic),
+           {:ok, blacklist} <- Jason.decode(blacklist) do
+        blacklist
+      else
+        _ -> []
       end
 
     for result <- Sadpanda.Api.fetch(matches) do
@@ -28,13 +40,29 @@ defmodule Katsuragi.Commands.Sadpanda do
           %Embed{}
           |> Embed.put_color(0x660611)
           |> Embed.put_url("https://exhentai.org/g/#{gallery.id}/#{gallery.token}/")
-          |> Embed.put_image(gallery.thumbnail)
           |> Embed.put_timestamp(DateTime.to_iso8601(gallery.posted))
           |> Embed.put_title(Map.get(gallery, :title, gallery.japanese_title))
           |> Embed.put_footer("""
           Gallery with #{gallery.file_count} page(s).
           Shared by #{message.author.username}.
           """)
+
+        is_blacklisted? =
+          Enum.any?(
+            gallery.original_tags,
+            &(&1 in blacklist)
+          )
+
+        embed =
+          if is_blacklisted? do
+            Embed.put_field(
+              embed,
+              "Note",
+              "This gallery has one or more tags that were disallowed in this channel."
+            )
+          else
+            Embed.put_image(embed, gallery.thumbnail)
+          end
 
         embed =
           gallery.tags

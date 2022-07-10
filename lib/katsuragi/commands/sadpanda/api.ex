@@ -57,6 +57,7 @@ defmodule Katsuragi.Commands.Sadpanda.Api do
 
       # Tags
       tags: parse_tags(response["tags"]),
+      original_tags: response["tags"],
 
       # Metadata
       category: Map.get(response, "category"),
