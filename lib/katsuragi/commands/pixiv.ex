@@ -12,18 +12,25 @@ defmodule Katsuragi.Commands.Pixiv do
   alias Katsuragi.Commands.Pixiv.Constants
 
   @pattern ~r"pixiv\S*?/artworks/(\d+)(?:\s(\d+))?"i
+  @blacklist ~r"blacklist: (.+?)$"im
 
   def aliases do
     ["pixiv"]
   end
 
-  def reply(message, gallery_id, page) do
+  def reply(message, gallery_id, page, blacklist) do
     with {:ok, work} <- Work.get(gallery_id),
          {:ok, pages} <- Work.pages(gallery_id),
          url <- Enum.at(pages, page, work),
          url <- url["urls"]["regular"],
          {:ok, file} <- Work.download(url) do
       name = Path.basename(url)
+
+      is_blacklisted =
+        Enum.any?(
+          work["tags"]["tags"],
+          &(&1["translation"]["en"] in blacklist or &1["tag"] in blacklist)
+        )
 
       description =
         work["tags"]["tags"]
@@ -35,7 +42,6 @@ defmodule Katsuragi.Commands.Pixiv do
         |> Embed.put_color(0x0086E0)
         |> Embed.put_title(work["title"])
         |> Embed.put_author(work["userName"], Work.author_link_for(work), nil)
-        |> Embed.put_image("attachment://#{name}")
         |> Embed.put_description("`#{description}`")
         |> Embed.put_footer("""
         Gallery with #{work["pageCount"]} page(s).
@@ -44,13 +50,36 @@ defmodule Katsuragi.Commands.Pixiv do
         |> Embed.put_timestamp(Work.updated_at!(work))
         |> Embed.put_url(Work.link_for(work))
 
-      file = %{body: file.body, name: name}
+      if is_blacklisted do
+        embed =
+          Embed.put_field(
+            embed,
+            "Note",
+            "This gallery has one or more tags that were disallowed in this channel."
+          )
 
-      Api.create_message(message, file: file, embed: embed)
+        Api.create_message(message, embed: embed)
+      else
+        file = %{body: file.body, name: name}
+        embed = Embed.put_image(embed, "attachment://#{name}")
+
+        Api.create_message(message, file: file, embed: embed)
+      end
     end
   end
 
-  def call(%Request{message: message} = request) do
+  def call(%Request{message: message, channel_id: channel_id} = request) do
+    channel = Nostrum.Api.get_channel!(channel_id)
+
+    blacklist =
+      with %{topic: topic} <- channel,
+           [_match, blacklist] <- Regex.run(@blacklist, topic),
+           {:ok, blacklist} <- Jason.decode(blacklist) do
+        blacklist
+      else
+        _ -> []
+      end
+
     matches =
       for match <- Regex.scan(@pattern, message.content) do
         {gallery_id, page} =
@@ -62,7 +91,7 @@ defmodule Katsuragi.Commands.Pixiv do
               {gallery_id, String.to_integer(page) - 1}
           end
 
-        task = Task.async(fn -> reply(message, gallery_id, page) end)
+        task = Task.async(fn -> reply(message, gallery_id, page, blacklist) end)
 
         # Wait for a while to avoid triggering the rate limiter.
         Process.sleep(2000)
