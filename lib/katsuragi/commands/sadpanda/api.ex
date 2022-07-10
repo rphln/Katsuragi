@@ -97,7 +97,7 @@ defmodule Katsuragi.Commands.Sadpanda.Api do
   defp parse_tag(content) do
     case String.split(content, ":") do
       [namespace, value] -> {String.capitalize(namespace), value}
-      [value] -> {"Misc", value}
+      [value] -> {"Unspecified", value}
     end
   end
 end
