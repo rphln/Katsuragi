@@ -54,6 +54,13 @@ defmodule Katsuragi.Commands.Sadpanda do
           )
 
         embed =
+          gallery.tags
+          |> Map.drop(["Artist", "Group", "Parody"])
+          |> Enum.reduce(embed, fn {namespace, children}, embed ->
+            Embed.put_field(embed, namespace, "`#{Enum.join(children, " • ")}`", false)
+          end)
+
+        embed =
           if is_blacklisted? do
             Embed.put_field(
               embed,
@@ -63,13 +70,6 @@ defmodule Katsuragi.Commands.Sadpanda do
           else
             Embed.put_image(embed, gallery.thumbnail)
           end
-
-        embed =
-          gallery.tags
-          |> Map.drop(["Artist", "Group", "Parody"])
-          |> Enum.reduce(embed, fn {namespace, children}, embed ->
-            Embed.put_field(embed, namespace, "`#{Enum.join(children, " • ")}`", false)
-          end)
 
         Api.create_message!(message, embed: embed)
         Process.sleep(2000)
