@@ -82,7 +82,7 @@ defmodule Katsuragi.Commands.Pixiv do
     channel = Nostrum.Api.get_channel!(channel_id)
 
     blacklist =
-      with %{topic: topic} <- channel,
+      with %{topic: topic} when not is_nil(topic) <- channel,
            [_match, blacklist] <- Regex.run(@blacklist, topic),
            {:ok, blacklist} <- Jason.decode(blacklist) do
         blacklist
