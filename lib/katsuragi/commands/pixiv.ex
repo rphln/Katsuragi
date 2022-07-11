@@ -40,7 +40,7 @@ defmodule Katsuragi.Commands.Pixiv do
 
           "[##{english || japanese}](https://www.pixiv.net/en/tags/#{japanese})"
         end)
-        |> Enum.join("\u00A0\u00A0\t")
+        |> Enum.join("\u2003")
 
       icon = "https://s.pximg.net/common/images/apple-touch-icon.png"
 
