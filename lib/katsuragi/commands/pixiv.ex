@@ -34,15 +34,24 @@ defmodule Katsuragi.Commands.Pixiv do
 
       description =
         work["tags"]["tags"]
-        |> Enum.map(&(&1["translation"]["en"] || &1["tag"]))
-        |> Enum.join(" • ")
+        |> Enum.map(fn tag ->
+          english = tag["translation"]["en"]
+          japanese = tag["tag"]
+
+          "[##{english || japanese}](https://www.pixiv.net/en/tags/#{japanese})"
+        end)
+        |> Enum.join("\u00A0\u00A0\t")
+
+      # |> Enum.map(&(&1["translation"]["en"] || &1["tag"]))
+      # |> Enum.join(" • ")
 
       embed =
         %Embed{}
         |> Embed.put_color(0x0086E0)
         |> Embed.put_title(work["title"])
         |> Embed.put_author(work["userName"], Work.author_link_for(work), nil)
-        |> Embed.put_description("`#{description}`")
+        |> Embed.put_description(description)
+        # |> Embed.put_description("`#{description}`")
         |> Embed.put_footer("""
         Gallery with #{work["pageCount"]} page(s).
         Shared by #{message.author.username}.
