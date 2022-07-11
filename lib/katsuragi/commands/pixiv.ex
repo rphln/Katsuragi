@@ -42,8 +42,12 @@ defmodule Katsuragi.Commands.Pixiv do
         end)
         |> Enum.join("\u00A0\u00A0\t")
 
-      # |> Enum.map(&(&1["translation"]["en"] || &1["tag"]))
-      # |> Enum.join(" • ")
+      icon = "https://s.pximg.net/common/images/apple-touch-icon.png"
+
+      footer = """
+      Gallery with #{work["pageCount"]} page(s).
+      Shared by #{message.author.username}.
+      """
 
       embed =
         %Embed{}
@@ -52,10 +56,7 @@ defmodule Katsuragi.Commands.Pixiv do
         |> Embed.put_author(work["userName"], Work.author_link_for(work), nil)
         |> Embed.put_description(description)
         # |> Embed.put_description("`#{description}`")
-        |> Embed.put_footer("""
-        Gallery with #{work["pageCount"]} page(s).
-        Shared by #{message.author.username}.
-        """)
+        |> Embed.put_footer(footer, icon)
         |> Embed.put_timestamp(Work.updated_at!(work))
         |> Embed.put_url(Work.link_for(work))
 
